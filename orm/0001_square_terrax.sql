@@ -1,0 +1,2 @@
+ALTER TABLE "notes" ALTER COLUMN "note_ctx" SET DEFAULT '{"note_title":"Untitled","note_emoji":"","note_content":[]}'::jsonb;--> statement-breakpoint
+ALTER TABLE "notes" ALTER COLUMN "note_ctx" DROP NOT NULL;
