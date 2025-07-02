@@ -4,16 +4,17 @@ import { notes } from "@/lib/drizzle/schema";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-/**
- * TODO: Refactor the supabase logic and implement the other api endpoints
- */
-
-export async function GET() {
+async function getAuthenticatedUser() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  return user;
+}
+
+export async function GET() {
+  const user = await getAuthenticatedUser();
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -24,11 +25,7 @@ export async function GET() {
 }
 
 export async function POST() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = user?.id;
