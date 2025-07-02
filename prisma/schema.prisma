@@ -7,3 +7,12 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+model NoteNotes {
+  id        String   @id @default(uuid())
+  userId    String
+  noteCtx   Json
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
