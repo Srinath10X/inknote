@@ -6,6 +6,7 @@ import { GalleryVerticalEnd } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,25 @@ export default function SignInPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (email.trim() === "" && password.trim() === "") {
+      setErrorMsg("Please enter email and password");
+      toast.error("Please enter email and password");
+      return;
+    }
+
+    if (password.trim() === "") {
+      setErrorMsg("Please enter password");
+      toast.error("Please enter password");
+      return;
+    }
+
+    if (email.trim() === "") {
+      setErrorMsg("Please enter email");
+      toast.error("Please enter email");
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -21,6 +41,7 @@ export default function SignInPage() {
 
     if (error) {
       setErrorMsg(error.message);
+      toast.error(error.message);
     } else {
       window.location.href = "/editor";
     }
