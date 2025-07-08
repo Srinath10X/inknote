@@ -12,3 +12,17 @@ export const notes = pgTable("notes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
+
+export type NoteCtx = {
+  note_title: string;
+  note_emoji: string;
+  note_content: any[];
+};
+
+export type Note = typeof notes.$inferSelect & {
+  noteCtx: NoteCtx;
+};
+
+export type NewNote = typeof notes.$inferInsert & {
+  noteCtx?: Partial<NoteCtx>;
+};
