@@ -1,5 +1,5 @@
 import { db } from "@/lib/drizzle/client";
-import { notes } from "@/lib/drizzle/schema";
+import { NoteCtx, notes, type Note } from "@/lib/drizzle/schema";
 import { createClient } from "@/lib/supabase/server";
 import { eq } from "drizzle-orm";
 
@@ -16,11 +16,18 @@ export async function GET(
 
   if (!user) return new Response("Unauthorized", { status: 401 });
 
-  const [note] = await db.select().from(notes).where(eq(notes.id, noteId));
+  const notesResult = await db.select().from(notes).where(eq(notes.id, noteId));
 
-  if (!note || note.userId !== user.id) {
+  const rawNote = notesResult[0];
+
+  if (!rawNote || rawNote.userId !== user.id) {
     return new Response("Not Found", { status: 404 });
   }
+
+  const note: Note = {
+    ...rawNote,
+    noteCtx: rawNote.noteCtx as NoteCtx,
+  };
 
   return Response.json({ content: note.noteCtx?.note_content ?? [] });
 }
