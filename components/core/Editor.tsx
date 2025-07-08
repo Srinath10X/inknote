@@ -34,6 +34,7 @@ export const Editor: React.FC<EditorProps> = ({
         onChangeAction?.(content);
       }}
       spellCheck={false}
+      theme={"light"}
     />
   );
 };
