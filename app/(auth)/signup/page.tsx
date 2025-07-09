@@ -48,17 +48,8 @@ export default function SignInPage() {
     }
   };
 
-  const handleOAuthSignUp = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
-      },
-    });
-
-    if (error) {
-      setErrorMsg(error.message);
-    }
+  const handleOAuthSignUp = () => {
+    window.location.href = "/api/auth/oauth/google";
   };
 
   return (

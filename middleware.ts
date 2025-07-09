@@ -2,8 +2,7 @@ import { updateSession } from "@/utils/auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/api/auth/callback"))
-    return NextResponse.next();
+  if (request.nextUrl.pathname.startsWith("/api")) return NextResponse.next();
 
   return await updateSession(request);
 }
