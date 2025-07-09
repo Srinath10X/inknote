@@ -49,7 +49,7 @@ export default function SignInPage() {
   };
 
   const handleOAuthLogin = () => {
-    window.location.href = "/api/auth/oauth/google";
+    window.location.href = "/api/oauth/google";
   };
 
   return (
