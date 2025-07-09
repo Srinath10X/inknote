@@ -1,7 +1,7 @@
 "use client";
 
-import { useNotesStore } from "@/lib/store/note";
 import { PlusCircleIcon } from "lucide-react";
+import { useNotesStore } from "@/lib/store/note";
 
 export default function EditorPage() {
   const { getNotes } = useNotesStore();

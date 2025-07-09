@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, TrashIcon } from "lucide-react";
 import { useNotesStore } from "@/lib/store/note";
 
 export default function MainLayout({

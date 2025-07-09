@@ -19,7 +19,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialContent,
 }) => {
   const editor: BlockNoteEditor = useCreateBlockNote({
-    codeBlock: codeBlock,
+    codeBlock,
     initialContent: initialContent
       ? (JSON.parse(initialContent) as PartialBlock[])
       : undefined,

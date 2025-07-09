@@ -42,6 +42,7 @@ export default function SignInPage() {
 
     if (error) {
       setErrorMsg(error.message);
+      toast.error(error.message);
     } else {
       window.location.href = "/editor";
     }
@@ -51,7 +52,7 @@ export default function SignInPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || location.origin}/api/auth/callback`,
+        redirectTo: `${window.location.origin}/api/auth/callback`,
       },
     });
 
