@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.flex-between {
+  @apply flex justify-between items-center;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
