@@ -41,8 +41,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-2 z-50">
-      <div className="h-16 px-4 sm:px-6 flex items-center justify-between border border-black/10 rounded-xl bg-white/70 backdrop-blur-xl supports-backdrop-filter:bg-white/40">
-        <h1 className="text-lg font-semibold tracking-tight">Inknote</h1>
+      <div className="h-16 px-4 sm:px-6 glass glass-border flex-between-center">
+        <h1 className="font-semibold text-lg tracking-tight">Inknote</h1>
 
         <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
           {links.map(({ id, name, href }) => (
