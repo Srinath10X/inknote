@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 
+import Image from "next/image";
 import Header from "./_components/Header";
 import BlueNPurpleGradient from "./_gradients/BlueNPurpleGradient";
 
@@ -35,7 +36,15 @@ export default function Home() {
 
         <section className="px-4">
           {/* This will be the image section */}
-          <div className="h-[720px] w-full px-4 border-2 border-gray-300 rounded-xl bg-gray-200"></div>
+          <Image
+            src={
+              "https://tailark.com/_next/image?url=%2Fmist%2Ftailark-2.png&w=3840&q=75"
+            }
+            alt="Image of Inknote"
+            height={720}
+            width={1280}
+            className="glass-border p-2 bg-black/5"
+          />
         </section>
       </div>
     </>
