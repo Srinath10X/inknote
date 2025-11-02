@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Header from "./_components/Header";
 import BlueNPurpleGradient from "./_gradients/BlueNPurpleGradient";
+import Footer from "./_components/Footer";
 
 export default function Home() {
   return (
@@ -46,6 +47,7 @@ export default function Home() {
             className="glass-border p-2 bg-black/5"
           />
         </section>
+        <Footer />
       </div>
     </>
   );
