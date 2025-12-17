@@ -1,7 +1,11 @@
-export default function SignUpPage() {
+import { SignupForm } from "@/components/signup-form"
+
+export default function SignupPage() {
 	return (
-		<div>
-			<h1>Sign Up Page</h1>
+		<div className="flex min-h-svh items-center justify-center p-6 md:p-10">
+			<div className="w-full max-w-xs">
+				<SignupForm />
+			</div>
 		</div>
 	)
 }
