@@ -3,26 +3,26 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function createClient(
-	request?: NextRequest,
-	response?: NextResponse,
+  request?: NextRequest,
+  response?: NextResponse,
 ) {
-	const cookieStore = await cookies();
+  const cookieStore = await cookies();
 
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
-	return createServerClient(supabaseUrl, supabaseKey, {
-		cookies: {
-			getAll: () => (request ? request.cookies.getAll() : cookieStore.getAll()),
-			setAll: (cookiesToSet) => {
-				cookiesToSet.forEach(({ name, value, options }) => {
-					if (response) {
-						response.cookies.set(name, value, options);
-					} else {
-						cookieStore.set(name, value, options);
-					}
-				});
-			},
-		},
-	});
+  return createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll: () => (request ? request.cookies.getAll() : cookieStore.getAll()),
+      setAll: (cookiesToSet) => {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          if (response) {
+            response.cookies.set(name, value, options);
+          } else {
+            cookieStore.set(name, value, options);
+          }
+        });
+      },
+    },
+  });
 }
