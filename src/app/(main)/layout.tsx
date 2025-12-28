@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, MouseEvent } from "react";
 import {
   ChevronsLeft,
   ChevronsRight,
@@ -22,14 +22,44 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Custom hook for resizable sidebar
-const useResizableSidebar = () => {
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef(null);
-  const editorRef = useRef(null);
+// Types
+interface Note {
+  id: string;
+  name: string;
+  children: Note[];
+  isOpen: boolean;
+}
 
-  const onMouseMove = (e) => {
-    let width = e.clientX;
+interface UseResizableSidebarReturn {
+  isResizing: boolean;
+  sidebarRef: React.RefObject<HTMLElement | null>;
+  editorRef: React.RefObject<HTMLElement | null>;
+  onMouseDown: () => void;
+}
+
+interface FileTreeItemProps {
+  item: Note;
+  depth?: number;
+  onToggle: (id: string) => void;
+  onAddChild: (parentId: string) => void;
+  onDelete: (id: string) => void;
+  selectedId: string;
+  onSelect: (id: string) => void;
+}
+
+interface FileTreeLayoutProps {
+  children?: React.ReactNode;
+}
+
+// Custom hook for resizable sidebar
+const useResizableSidebar = (): UseResizableSidebarReturn => {
+  const [isResizing, setIsResizing] = useState<boolean>(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const editorRef = useRef<HTMLElement>(null);
+
+  const onMouseMove = (e: Event) => {
+    const mouseEvent = e as unknown as MouseEvent;
+    let width = mouseEvent.clientX;
     if (width < 200) width = 200;
     if (width > 500) width = 500;
     if (sidebarRef.current) {
@@ -69,9 +99,8 @@ const FileTreeItem = ({
   onDelete,
   selectedId,
   onSelect,
-}) => {
-  const [showMenu, setShowMenu] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+}: FileTreeItemProps) => {
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   const hasChildren = item.children && item.children.length > 0;
   const isSelected = selectedId === item.id;
 
@@ -89,7 +118,7 @@ const FileTreeItem = ({
         <div className="relative flex items-center justify-center w-5 h-5">
           {isHovered && (
             <button
-              onClick={(e) => {
+              onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 onToggle(item.id);
               }}
@@ -113,7 +142,7 @@ const FileTreeItem = ({
           className={`flex items-center gap-1 ${isHovered ? "opacity-100" : "opacity-0"} transition-opacity`}
         >
           <button
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               onAddChild(item.id);
             }}
@@ -126,7 +155,9 @@ const FileTreeItem = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e: MouseEvent<HTMLButtonElement>) =>
+                  e.stopPropagation()
+                }
                 className="p-1 rounded hover:bg-slate-400/40 transition-colors"
               >
                 <MoreHorizontal className="w-3.5 h-3.5 text-slate-600" />
@@ -172,21 +203,15 @@ const FileTreeItem = ({
   );
 };
 
-// Main Layout Component
-function FileTreeLayout({ children }) {
+function FileTreeLayout({ children }: FileTreeLayoutProps) {
   const { isResizing, sidebarRef, editorRef, onMouseDown } =
     useResizableSidebar();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const sideBarContainerRef = useRef(null);
-  const [selectedId, setSelectedId] = useState("1");
-  const [nextId, setNextId] = useState(5);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const sideBarContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedId, setSelectedId] = useState<string>("1");
+  const [nextId, setNextId] = useState<number>(5);
 
-  const [notes, setNotes] = useState([
-    { id: "1", name: "New page", children: [], isOpen: false },
-    { id: "2", name: "Habit tracker", children: [], isOpen: false },
-    { id: "3", name: "Reading List", children: [], isOpen: false },
-    { id: "4", name: "Hello world", children: [], isOpen: false },
-  ]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   useEffect(() => {
     if (sidebarRef.current) {
@@ -212,8 +237,8 @@ function FileTreeLayout({ children }) {
     }
   };
 
-  const addNote = (parentId = null) => {
-    const newNote = {
+  const addNote = (parentId: string | null = null) => {
+    const newNote: Note = {
       id: String(nextId),
       name: "New page",
       children: [],
@@ -223,7 +248,7 @@ function FileTreeLayout({ children }) {
     if (parentId === null) {
       setNotes([...notes, newNote]);
     } else {
-      const addChildToNote = (notesList) => {
+      const addChildToNote = (notesList: Note[]): Note[] => {
         return notesList.map((note) => {
           if (note.id === parentId) {
             return {
@@ -246,8 +271,8 @@ function FileTreeLayout({ children }) {
     setNextId(nextId + 1);
   };
 
-  const toggleNote = (id) => {
-    const toggleInTree = (notesList) => {
+  const toggleNote = (id: string) => {
+    const toggleInTree = (notesList: Note[]): Note[] => {
       return notesList.map((note) => {
         if (note.id === id) {
           return { ...note, isOpen: !note.isOpen };
@@ -264,8 +289,8 @@ function FileTreeLayout({ children }) {
     setNotes(toggleInTree(notes));
   };
 
-  const deleteNote = (id) => {
-    const deleteFromTree = (notesList) => {
+  const deleteNote = (id: string) => {
+    const deleteFromTree = (notesList: Note[]): Note[] => {
       return notesList
         .filter((note) => note.id !== id)
         .map((note) => ({
@@ -403,18 +428,7 @@ function FileTreeLayout({ children }) {
         </div>
 
         {/* Children content area */}
-        <div className="h-full w-full">
-          {children || (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-slate-300 mb-2">
-                  New page
-                </h1>
-                <p className="text-slate-400">Start writing...</p>
-              </div>
-            </div>
-          )}
-        </div>
+        <div className="h-full w-full">{children}</div>
       </section>
     </main>
   );
