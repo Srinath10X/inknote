@@ -2,25 +2,29 @@
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import {
+  ChevronDown,
+  ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   Command,
   PlusCircle,
   Search,
   Settings,
-  ChevronRight,
-  ChevronDown,
   File,
   Plus,
-  MoreHorizontal,
   Trash2,
+  MoreHorizontal,
 } from "lucide-react";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import AppLayout from "./_components/AppLayout";
+import { supabase } from "@/lib/supabase/client";
 
 // Types
 interface Note {
@@ -49,6 +53,22 @@ interface FileTreeItemProps {
 
 interface FileTreeLayoutProps {
   children?: React.ReactNode;
+}
+
+async function getUser() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const name =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "Anonymous";
+
+  const avatar = user?.user_metadata?.avatar_url || "";
+
+  return { name, avatar };
 }
 
 // Custom hook for resizable sidebar
@@ -155,9 +175,7 @@ const FileTreeItem = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                onClick={(e: MouseEvent<HTMLButtonElement>) =>
-                  e.stopPropagation()
-                }
+                onPointerDown={(e) => e.stopPropagation()}
                 className="p-1 rounded hover:bg-slate-400/40 transition-colors"
               >
                 <MoreHorizontal className="w-3.5 h-3.5 text-slate-600" />
@@ -203,7 +221,7 @@ const FileTreeItem = ({
   );
 };
 
-function FileTreeLayout({ children }: FileTreeLayoutProps) {
+export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
   const { isResizing, sidebarRef, editorRef, onMouseDown } =
     useResizableSidebar();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -212,6 +230,33 @@ function FileTreeLayout({ children }: FileTreeLayoutProps) {
   const [nextId, setNextId] = useState<number>(5);
 
   const [notes, setNotes] = useState<Note[]>([]);
+
+  const [userProfile, setUserProfile] = useState<{
+    name: string;
+    avatar: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const name =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Anonymous";
+
+      const avatar = user.user_metadata?.avatar_url || "";
+
+      setUserProfile({ name, avatar });
+    };
+
+    loadUser();
+  }, []);
 
   useEffect(() => {
     if (sidebarRef.current) {
@@ -305,7 +350,7 @@ function FileTreeLayout({ children }: FileTreeLayoutProps) {
   };
 
   return (
-    <main className="h-screen w-full flex overflow-hidden">
+    <AppLayout>
       <aside
         ref={sidebarRef}
         className={`w-72 flex justify-between group/sidebar bg-slate-100 relative ${!isResizing && "transition-all duration-300"}`}
@@ -385,12 +430,21 @@ function FileTreeLayout({ children }: FileTreeLayoutProps) {
           {/* User section */}
           <div className="mt-auto pt-3 border-t border-slate-200">
             <div className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-300/40 cursor-pointer transition-colors">
-              <div className="h-8 w-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-sm font-semibold">
-                S
+              <div className="h-8 w-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
+                {userProfile?.avatar ? (
+                  <img
+                    src={userProfile.avatar}
+                    alt={userProfile.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  (userProfile?.name?.[0] ?? "A")
+                )}
               </div>
+
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-medium text-slate-700">
-                  Srinath
+                  {userProfile?.name ?? "Anonymous"}
                 </span>
                 <span className="text-xs text-slate-500">Free Plan</span>
               </div>
@@ -416,11 +470,11 @@ function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
       <section
         ref={editorRef}
-        className={`flex-1 relative ${!isResizing && "transition-all duration-300"}`}
+        className={`flex-1 relative overflow-y-auto ${!isResizing && "transition-all duration-300"}`}
       >
         <div
           onClick={handleOpen}
-          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity ${
+          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity z-20 ${
             isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -430,8 +484,6 @@ function FileTreeLayout({ children }: FileTreeLayoutProps) {
         {/* Children content area */}
         <div className="h-full w-full">{children}</div>
       </section>
-    </main>
+    </AppLayout>
   );
 }
-
-export default FileTreeLayout;
