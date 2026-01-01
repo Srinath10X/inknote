@@ -18,13 +18,15 @@ import {
 
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 
 import AppLayout from "./_components/AppLayout";
 import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useNotesStore } from "@/lib/store/notes-store";
 
 // Types
 interface Note {
@@ -47,28 +49,12 @@ interface FileTreeItemProps {
   onToggle: (id: string) => void;
   onAddChild: (parentId: string) => void;
   onDelete: (id: string) => void;
-  selectedId: string;
+  selectedId: string | null;
   onSelect: (id: string) => void;
 }
 
 interface FileTreeLayoutProps {
   children?: React.ReactNode;
-}
-
-async function getUser() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const name =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.email?.split("@")[0] ||
-    "Anonymous";
-
-  const avatar = user?.user_metadata?.avatar_url || "";
-
-  return { name, avatar };
 }
 
 // Custom hook for resizable sidebar
@@ -133,7 +119,6 @@ const FileTreeItem = ({
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => onSelect(item.id)}
       >
         <div className="relative flex items-center justify-center w-5 h-5">
           {isHovered && (
@@ -154,12 +139,17 @@ const FileTreeItem = ({
           {!isHovered && <File className="w-4 h-4 text-slate-600 shrink-0" />}
         </div>
 
-        <span className="text-slate-700 text-sm flex-1 truncate">
+        <span
+          className="text-slate-700 text-sm flex-1 truncate"
+          onClick={() => onSelect(item.id)}
+        >
           {item.name}
         </span>
 
         <div
-          className={`flex items-center gap-1 ${isHovered ? "opacity-100" : "opacity-0"} transition-opacity`}
+          className={`flex items-center gap-1 ${
+            isHovered ? "opacity-100" : "opacity-0"
+          } transition-opacity`}
         >
           <button
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
@@ -226,10 +216,8 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
     useResizableSidebar();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const sideBarContainerRef = useRef<HTMLDivElement>(null);
-  const [selectedId, setSelectedId] = useState<string>("1");
-  const [nextId, setNextId] = useState<number>(5);
 
-  const [notes, setNotes] = useState<Note[]>([]);
+  const { notes, selectedId, addNote, selectNote } = useNotesStore();
 
   const [userProfile, setUserProfile] = useState<{
     name: string;
@@ -282,78 +270,58 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
     }
   };
 
-  const addNote = (parentId: string | null = null) => {
-    const newNote: Note = {
-      id: String(nextId),
-      name: "New page",
-      children: [],
-      isOpen: false,
-    };
-
-    if (parentId === null) {
-      setNotes([...notes, newNote]);
-    } else {
-      const addChildToNote = (notesList: Note[]): Note[] => {
-        return notesList.map((note) => {
-          if (note.id === parentId) {
-            return {
-              ...note,
-              children: [...note.children, newNote],
-              isOpen: true,
-            };
+  const toggleNote = (id: string) => {
+    useNotesStore.setState((state) => {
+      const toggle = (notes: Note[]): Note[] =>
+        notes.map((note) => {
+          if (note.id === id) {
+            return { ...note, isOpen: !note.isOpen };
           }
+
           if (note.children.length > 0) {
             return {
               ...note,
-              children: addChildToNote(note.children),
+              children: toggle(note.children),
             };
           }
+
           return note;
         });
-      };
-      setNotes(addChildToNote(notes));
-    }
-    setNextId(nextId + 1);
-  };
 
-  const toggleNote = (id: string) => {
-    const toggleInTree = (notesList: Note[]): Note[] => {
-      return notesList.map((note) => {
-        if (note.id === id) {
-          return { ...note, isOpen: !note.isOpen };
-        }
-        if (note.children.length > 0) {
-          return {
-            ...note,
-            children: toggleInTree(note.children),
-          };
-        }
-        return note;
-      });
-    };
-    setNotes(toggleInTree(notes));
+      return {
+        notes: toggle(state.notes),
+      };
+    });
   };
 
   const deleteNote = (id: string) => {
-    const deleteFromTree = (notesList: Note[]): Note[] => {
-      return notesList
-        .filter((note) => note.id !== id)
-        .map((note) => ({
-          ...note,
-          children: deleteFromTree(note.children),
-        }));
-    };
-    setNotes(deleteFromTree(notes));
-    if (selectedId === id) {
-      setSelectedId(notes[0]?.id || "");
-    }
+    useNotesStore.setState((state) => {
+      const remove = (list: Note[]): Note[] =>
+        list
+          .filter((n) => n.id !== id)
+          .map((n) => ({ ...n, children: remove(n.children) }));
+
+      const newNotes = remove(state.notes);
+
+      return {
+        notes: newNotes,
+        selectedId:
+          state.selectedId === id
+            ? (newNotes[0]?.id ?? null)
+            : state.selectedId,
+      };
+    });
   };
+
+  const router = useRouter();
 
   return (
     <AppLayout>
       <aside
         ref={sidebarRef}
-        className={`w-72 flex justify-between group/sidebar bg-slate-100 relative ${!isResizing && "transition-all duration-300"}`}
+        className={`w-72 flex justify-between group/sidebar bg-slate-100 relative ${
+          !isResizing && "transition-all duration-300"
+        }`}
       >
         <section
           ref={sideBarContainerRef}
@@ -390,7 +358,14 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
             {/* New Page */}
             <div
-              onClick={() => addNote()}
+              onClick={() =>
+                addNote({
+                  id: crypto.randomUUID(),
+                  name: "Untitled",
+                  children: [],
+                  isOpen: false,
+                })
+              }
               className="text-slate-600 hover:bg-slate-300/40 hover:cursor-pointer rounded-md duration-300 active:scale-95 select-none"
             >
               <div className="flex gap-2 p-2 items-center">
@@ -405,23 +380,44 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
             <div className="flex items-center justify-between px-2 mb-2">
               <p className="text-sm text-slate-600">Private</p>
               <button
-                onClick={() => addNote()}
+                onClick={() =>
+                  addNote({
+                    id: crypto.randomUUID(),
+                    name: "Untitled",
+                    children: [],
+                    isOpen: false,
+                  })
+                }
                 className="p-1 rounded hover:bg-slate-300/40 transition-colors"
                 title="Add a page"
               >
                 <Plus className="w-4 h-4 text-slate-600" />
               </button>
             </div>
+
             <div className="space-y-0.5">
               {notes.map((note) => (
                 <FileTreeItem
                   key={note.id}
                   item={note}
                   onToggle={toggleNote}
-                  onAddChild={addNote}
+                  onAddChild={(parentId) =>
+                    addNote(
+                      {
+                        id: crypto.randomUUID(),
+                        name: "Untitled",
+                        children: [],
+                        isOpen: false,
+                      },
+                      parentId,
+                    )
+                  }
                   onDelete={deleteNote}
                   selectedId={selectedId}
-                  onSelect={setSelectedId}
+                  onSelect={(id) => {
+                    selectNote(id);
+                    router.push(`/editor/${id}`);
+                  }}
                 />
               ))}
             </div>
@@ -470,15 +466,20 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
       <section
         ref={editorRef}
-        className={`flex-1 relative ${!isResizing && "transition-all duration-300"}`}
+        className={`flex-1 relative ${
+          !isResizing && "transition-all duration-300"
+        }`}
       >
         <div
           onClick={handleOpen}
-          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity z-20 ${isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity z-20 ${
+            isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         >
           <ChevronsRight className="text-slate-500" />
         </div>
-        <div className="h-full w-full overflow-y-auto ">{children}</div>{" "}
+
+        <div className="h-full w-full overflow-y-auto">{children}</div>
       </section>
     </AppLayout>
   );

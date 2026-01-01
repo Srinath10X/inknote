@@ -132,3 +132,25 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl supports-backdrop-filter:bg-white/40;
+  }
+
+  .glass-border {
+    @apply border border-black/10 rounded-xl;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-between-center {
+    @apply flex items-center justify-between;
+  }
+}

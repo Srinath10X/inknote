@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
+import { useNotesStore } from "@/lib/store/notes-store";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -38,8 +39,18 @@ export default function EditorEmptyPage() {
     loadUser();
   }, []);
 
+  const addNote = useNotesStore.getState().addNote;
+
   const handleCreate = () => {
     const id = crypto.randomUUID();
+
+    addNote({
+      id,
+      name: "Untitled",
+      children: [],
+      isOpen: false,
+    });
+
     router.push(`/editor/${id}`);
   };
 
