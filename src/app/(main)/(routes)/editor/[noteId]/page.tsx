@@ -8,38 +8,36 @@ import { Editor } from "./_components/Editor";
 
 export default function DynamicPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedEmoji, setSelectedEmoji] = useState(null);
-  const [coverImage, setCoverImage] = useState(null);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement | null>(null);
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-
       const editor = editorWrapperRef.current?.querySelector(
         '[contenteditable="true"]',
       ) as HTMLElement | null;
-
       editor?.focus();
     }
   };
 
-  const handleEmojiSelect = (emojiObject) => {
+  const handleEmojiSelect = (emojiObject: any) => {
     setSelectedEmoji(emojiObject.emoji);
     setShowEmojiPicker(false);
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCoverImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCoverImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeCoverImage = () => {
@@ -55,7 +53,7 @@ export default function DynamicPage() {
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Cover Image - Full Width */}
+      {/* Cover Image */}
       {coverImage && (
         <div className="relative w-full h-[30vh] group/cover">
           <img
@@ -65,7 +63,10 @@ export default function DynamicPage() {
           />
           <button
             onClick={removeCoverImage}
-            className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-700 px-3 py-1.5 rounded text-sm opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center gap-2 shadow-sm z-10"
+            className="absolute top-4 right-4 bg-white/90 hover:bg-white
+              text-gray-700 px-3 py-1.5 rounded text-sm
+              opacity-0 group-hover/cover:opacity-100 transition-opacity
+              flex items-center gap-2 shadow-sm z-10"
           >
             <X size={16} />
             Remove
@@ -73,10 +74,11 @@ export default function DynamicPage() {
         </div>
       )}
 
-      {/* Content Container - Centered with max-width */}
+      {/* Content */}
       <div className="max-w-225 mx-auto px-24 pt-12 relative z-20">
-        <div className="group/editor">
-          {/* Emoji and Cover Buttons Container */}
+        {/* TITLE HOVER SCOPE */}
+        <div className="group/title">
+          {/* Emoji + Buttons */}
           <div className="relative mb-2">
             {selectedEmoji && (
               <div className="flex items-center gap-3 group/emoji mb-1">
@@ -85,24 +87,28 @@ export default function DynamicPage() {
                 </span>
                 <button
                   onClick={removeEmoji}
-                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded opacity-0 group-hover/emoji:opacity-100 transition-opacity"
+                  className="p-2 rounded text-gray-400 hover:text-gray-600
+                    hover:bg-gray-100 opacity-0
+                    group-hover/emoji:opacity-100 transition-opacity"
                 >
                   <X size={18} />
                 </button>
               </div>
             )}
 
-            <div className="flex flex-row gap-2">
-              {/* Add Icon Button */}
+            <div className="flex gap-2">
               {!selectedEmoji && (
                 <div className="relative">
                   <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded text-sm opacity-0 group-hover/editor:opacity-100 transition-all flex items-center gap-2"
+                    onClick={() => setShowEmojiPicker((v) => !v)}
+                    className="text-slate-600 hover:bg-slate-100
+                      px-3 py-1.5 rounded text-sm flex items-center gap-2
+                      opacity-0 group-hover/title:opacity-100 transition-opacity"
                   >
                     <Smile size={16} />
                     Add icon
                   </button>
+
                   {showEmojiPicker && (
                     <div className="absolute top-full left-0 mt-2 z-50">
                       <Picker
@@ -117,16 +123,18 @@ export default function DynamicPage() {
                 </div>
               )}
 
-              {/* Add Cover Button */}
               {!coverImage && (
                 <>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded text-sm opacity-0 group-hover/editor:opacity-100 transition-all flex items-center gap-2"
+                    className="text-slate-600 hover:bg-slate-100
+                      px-3 py-1.5 rounded text-sm flex items-center gap-2
+                      opacity-0 group-hover/title:opacity-100 transition-opacity"
                   >
                     <Image size={16} />
                     Add cover
                   </button>
+
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -139,23 +147,24 @@ export default function DynamicPage() {
             </div>
           </div>
 
-          {/* Title Input - Notion Style */}
+          {/* Title */}
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleTitleKeyDown}
             placeholder="Untitled"
-            className="w-full text-[40px] font-bold border-none outline-none placeholder-gray-300 bg-transparent mb-2 leading-tight"
+            className="w-full text-5xl font-bold border-none outline-none
+              placeholder-gray-300 bg-transparent mb-2 leading-tight text-gray-700"
             style={{ caretColor: "black" }}
           />
+        </div>
 
-          {/* Editor */}
-          <div ref={editorWrapperRef} className="-ml-13 mt-2">
-            <ClientOnly>
-              <Editor />
-            </ClientOnly>
-          </div>
+        {/* Editor */}
+        <div ref={editorWrapperRef} className="-ml-13 mt-2">
+          <ClientOnly>
+            <Editor />
+          </ClientOnly>
         </div>
       </div>
     </div>
