@@ -470,19 +470,15 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
       <section
         ref={editorRef}
-        className={`flex-1 relative overflow-y-auto ${!isResizing && "transition-all duration-300"}`}
+        className={`flex-1 relative ${!isResizing && "transition-all duration-300"}`}
       >
         <div
           onClick={handleOpen}
-          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity z-20 ${
-            isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity z-20 ${isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         >
           <ChevronsRight className="text-slate-500" />
         </div>
-
-        {/* Children content area */}
-        <div className="h-full w-full">{children}</div>
+        <div className="h-full w-full overflow-y-auto ">{children}</div>{" "}
       </section>
     </AppLayout>
   );

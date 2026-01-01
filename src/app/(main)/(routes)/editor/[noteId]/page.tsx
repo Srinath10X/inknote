@@ -12,6 +12,19 @@ export default function DynamicPage() {
   const [coverImage, setCoverImage] = useState(null);
   const [title, setTitle] = useState("");
   const fileInputRef = useRef(null);
+  const editorWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const editor = editorWrapperRef.current?.querySelector(
+        '[contenteditable="true"]',
+      ) as HTMLElement | null;
+
+      editor?.focus();
+    }
+  };
 
   const handleEmojiSelect = (emojiObject) => {
     setSelectedEmoji(emojiObject.emoji);
@@ -85,7 +98,7 @@ export default function DynamicPage() {
                 <div className="relative">
                   <button
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded text-sm opacity-0 group-hover/editor:opacity-100 transition-all flex items-center gap-2 mt-2"
+                    className="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded text-sm opacity-0 group-hover/editor:opacity-100 transition-all flex items-center gap-2"
                   >
                     <Smile size={16} />
                     Add icon
@@ -109,7 +122,7 @@ export default function DynamicPage() {
                 <>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded text-sm opacity-0 group-hover/editor:opacity-100 transition-all flex items-center gap-2 mt-2"
+                    className="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded text-sm opacity-0 group-hover/editor:opacity-100 transition-all flex items-center gap-2"
                   >
                     <Image size={16} />
                     Add cover
@@ -126,17 +139,19 @@ export default function DynamicPage() {
             </div>
           </div>
 
+          {/* Title Input - Notion Style */}
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={handleTitleKeyDown}
             placeholder="Untitled"
-            className="w-full text-[40px] font-bold border-none outline-none placeholder-gray-300 bg-transparent mb-2 leading-tight mt-2"
+            className="w-full text-[40px] font-bold border-none outline-none placeholder-gray-300 bg-transparent mb-2 leading-tight"
             style={{ caretColor: "black" }}
           />
 
           {/* Editor */}
-          <div className="-ml-13 mt-2">
+          <div ref={editorWrapperRef} className="-ml-13 mt-2">
             <ClientOnly>
               <Editor />
             </ClientOnly>
