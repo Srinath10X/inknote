@@ -110,6 +110,8 @@ const FileTreeItem = ({
   const hasChildren = item.children && item.children.length > 0;
   const isSelected = selectedId === item.id;
 
+  const router = useRouter();
+
   return (
     <div>
       <div
@@ -181,7 +183,10 @@ const FileTreeItem = ({
             >
               <DropdownMenuItem
                 className="text-red-600 focus:text-red-600"
-                onClick={() => onDelete(item.id)}
+                onClick={() => {
+                  onDelete(item.id);
+                  router.back();
+                }}
               >
                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                 Delete
@@ -358,14 +363,18 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
             {/* New Page */}
             <div
-              onClick={() =>
+              onClick={() => {
+                const id = crypto.randomUUID();
+
                 addNote({
-                  id: crypto.randomUUID(),
+                  id,
                   name: "Untitled",
                   children: [],
                   isOpen: false,
-                })
-              }
+                });
+
+                router.push(`/editor/${id}`);
+              }}
               className="text-slate-600 hover:bg-slate-300/40 hover:cursor-pointer rounded-md duration-300 active:scale-95 select-none"
             >
               <div className="flex gap-2 p-2 items-center">
@@ -380,14 +389,18 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
             <div className="flex items-center justify-between px-2 mb-2">
               <p className="text-sm text-slate-600">Private</p>
               <button
-                onClick={() =>
+                onClick={() => {
+                  const id = crypto.randomUUID();
+
                   addNote({
-                    id: crypto.randomUUID(),
+                    id,
                     name: "Untitled",
                     children: [],
                     isOpen: false,
-                  })
-                }
+                  });
+
+                  router.push(`/editor/${id}`);
+                }}
                 className="p-1 rounded hover:bg-slate-300/40 transition-colors"
                 title="Add a page"
               >

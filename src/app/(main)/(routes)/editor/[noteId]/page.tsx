@@ -5,6 +5,8 @@ import { Smile, Image, X } from "lucide-react";
 import Picker from "emoji-picker-react";
 import ClientOnly from "@/components/client-only";
 import { Editor } from "./_components/Editor";
+import { redirect, useParams } from "next/navigation";
+import { useNotesStore } from "@/lib/store/notes-store";
 
 export default function DynamicPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -13,6 +15,13 @@ export default function DynamicPage() {
   const [title, setTitle] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const { notes } = useNotesStore();
+
+  if (notes.length == 0) {
+    redirect("/editor");
+  }
+  const { noteId } = useParams();
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -163,7 +172,11 @@ export default function DynamicPage() {
         {/* Editor */}
         <div ref={editorWrapperRef} className="-ml-13 mt-2">
           <ClientOnly>
-            <Editor />
+            <Editor
+              onChangeAction={(content) =>
+                localStorage.setItem(toString(noteId), content)
+              }
+            />
           </ClientOnly>
         </div>
       </div>
