@@ -1,18 +1,29 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Smile, Image, X } from "lucide-react";
 import Picker from "emoji-picker-react";
 import ClientOnly from "@/components/client-only";
 import { Editor } from "./_components/Editor";
 import { redirect, useParams } from "next/navigation";
-import { useNotesStore } from "@/lib/store/notes-store";
+import { Note, useNotesStore } from "@/lib/store/notes-store";
+
+type NoteContent = {
+  content: string;
+  coverImage: string | null;
+};
 
 export default function DynamicPage() {
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+
+  const [initialContent, setInitialContent] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const saveContent = (id: string, data: NoteContent) => {
+    localStorage.setItem(`note-content:${id}`, JSON.stringify(data));
+  };
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -21,7 +32,35 @@ export default function DynamicPage() {
   if (notes.length == 0) {
     redirect("/editor");
   }
-  const { noteId } = useParams();
+
+  const { noteId } = useParams<{ noteId: string }>();
+
+  useEffect(() => {
+    if (!noteId) return;
+
+    const raw = localStorage.getItem(`note-content:${noteId}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      setInitialContent(parsed.content ?? "");
+      setCoverImage(parsed.coverImage ?? null);
+    }
+
+    setIsLoading(false);
+  }, [noteId]);
+
+  const note = useNotesStore((state) => {
+    const find = (list: Note[]): Note | null => {
+      for (const n of list) {
+        if (n.id === noteId) return n;
+        const c = find(n.children);
+        if (c) return c;
+      }
+      return null;
+    };
+    return find(state.notes);
+  });
+
+  const { updateTitle, updateEmoji } = useNotesStore();
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -34,7 +73,7 @@ export default function DynamicPage() {
   };
 
   const handleEmojiSelect = (emojiObject: any) => {
-    setSelectedEmoji(emojiObject.emoji);
+    updateEmoji(noteId, emojiObject.emoji);
     setShowEmojiPicker(false);
   };
 
@@ -56,9 +95,7 @@ export default function DynamicPage() {
     }
   };
 
-  const removeEmoji = () => {
-    setSelectedEmoji(null);
-  };
+  const removeEmoji = () => updateEmoji(noteId, null);
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -89,11 +126,9 @@ export default function DynamicPage() {
         <div className="group/title">
           {/* Emoji + Buttons */}
           <div className="relative mb-2">
-            {selectedEmoji && (
+            {note?.emoji && (
               <div className="flex items-center gap-3 group/emoji mb-1">
-                <span className="text-[78px] leading-none">
-                  {selectedEmoji}
-                </span>
+                <span className="text-[78px] leading-none">{note?.emoji}</span>
                 <button
                   onClick={removeEmoji}
                   className="p-2 rounded text-gray-400 hover:text-gray-600
@@ -105,8 +140,8 @@ export default function DynamicPage() {
               </div>
             )}
 
-            <div className="flex gap-2">
-              {!selectedEmoji && (
+            <div className="flex mt-4">
+              {!note?.emoji && (
                 <div className="relative">
                   <button
                     onClick={() => setShowEmojiPicker((v) => !v)}
@@ -159,10 +194,10 @@ export default function DynamicPage() {
           {/* Title */}
           <input
             type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={handleTitleKeyDown}
+            value={note?.title ?? ""}
             placeholder="Untitled"
+            onKeyDown={handleTitleKeyDown}
+            onChange={(e) => updateTitle(noteId, e.target.value)}
             className="w-full text-5xl font-bold border-none outline-none
               placeholder-gray-300 bg-transparent mb-2 leading-tight text-gray-700"
             style={{ caretColor: "black" }}
@@ -172,11 +207,14 @@ export default function DynamicPage() {
         {/* Editor */}
         <div ref={editorWrapperRef} className="-ml-13 mt-2">
           <ClientOnly>
-            <Editor
-              onChangeAction={(content) =>
-                localStorage.setItem(toString(noteId), content)
-              }
-            />
+            {!isLoading && note && (
+              <Editor
+                initialContent={initialContent}
+                onChangeAction={(content) => {
+                  saveContent(noteId, { content, coverImage });
+                }}
+              />
+            )}
           </ClientOnly>
         </div>
       </div>

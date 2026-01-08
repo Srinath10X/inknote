@@ -26,15 +26,7 @@ import {
 import AppLayout from "./_components/AppLayout";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useNotesStore } from "@/lib/store/notes-store";
-
-// Types
-interface Note {
-  id: string;
-  name: string;
-  children: Note[];
-  isOpen: boolean;
-}
+import { Note, useNotesStore } from "@/lib/store/notes-store";
 
 interface UseResizableSidebarReturn {
   isResizing: boolean;
@@ -112,6 +104,21 @@ const FileTreeItem = ({
 
   const router = useRouter();
 
+  const noteMeta = useNotesStore((state) => {
+    const find = (list: Note[]): Note | null => {
+      for (const n of list) {
+        if (n.id === item.id) return n;
+        const child = find(n.children);
+        if (child) return child;
+      }
+      return null;
+    };
+    return find(state.notes);
+  });
+
+  const title = noteMeta?.title ?? "Untitled";
+  const emoji = noteMeta?.emoji ?? null;
+
   return (
     <div>
       <div
@@ -138,14 +145,21 @@ const FileTreeItem = ({
               )}
             </button>
           )}
-          {!isHovered && <File className="w-4 h-4 text-slate-600 shrink-0" />}
+          {!isHovered &&
+            (emoji ? (
+              <span className="w-4 h-4 flex items-center justify-center text-[13px] leading-none">
+                {emoji}
+              </span>
+            ) : (
+              <File className="w-4 h-4 text-slate-600 shrink-0" />
+            ))}
         </div>
 
         <span
           className="text-slate-700 text-sm flex-1 truncate"
           onClick={() => onSelect(item.id)}
         >
-          {item.name}
+          {title || "Untitled"}
         </span>
 
         <div
@@ -368,7 +382,8 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
                 addNote({
                   id,
-                  name: "Untitled",
+                  title: "",
+                  emoji: null,
                   children: [],
                   isOpen: false,
                 });
@@ -394,7 +409,8 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
 
                   addNote({
                     id,
-                    name: "Untitled",
+                    title: "",
+                    emoji: null,
                     children: [],
                     isOpen: false,
                   });
@@ -418,7 +434,8 @@ export default function FileTreeLayout({ children }: FileTreeLayoutProps) {
                     addNote(
                       {
                         id: crypto.randomUUID(),
-                        name: "Untitled",
+                        title: "",
+                        emoji: null,
                         children: [],
                         isOpen: false,
                       },

@@ -46,7 +46,8 @@ export default function EditorEmptyPage() {
 
     addNote({
       id,
-      name: "Untitled",
+      title: "",
+      emoji: null,
       children: [],
       isOpen: false,
     });
