@@ -4,6 +4,7 @@ import Image from "next/image";
 import Header from "./_components/Header";
 import Footer from "./_components/Footer";
 import MultiGradient from "./_components/MultiGradient";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -22,9 +23,11 @@ export default function Home() {
           </p>
 
           <div className="mt-10 flex-center flex-col sm:flex-row gap-3 sm:gap-4 px-2">
-            <Button className="h-12 w-full sm:w-auto px-8 text-base font-medium  z-10">
-              Get started
-            </Button>
+            <Link href={"/signup"}>
+              <Button className="h-12 w-full sm:w-auto px-8 text-base font-medium z-10">
+                Get started
+              </Button>
+            </Link>
 
             <Button
               variant="outline"
