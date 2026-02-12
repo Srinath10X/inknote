@@ -13,7 +13,7 @@ export const Item = ({ label, icon: Icon, onClick, shortcut }: ItemProps) => {
   return (
     <div
       onClick={onClick}
-      className="text-slate-600 hover:bg-slate-300/40 hover:cursor-pointer rounded-md duration-300 active:scale-95 select-none"
+      className="text-slate-600 hover:bg-slate-300/40 hover:cursor-pointer rounded-md duration-300 active:scale-[.98] select-none"
     >
       <div className="flex justify-between gap-2 p-2 items-center">
         <div className="flex gap-2 items-center">

@@ -10,8 +10,8 @@ export const useResizableSidebar = () => {
   const onMouseMove = (e: globalThis.MouseEvent) => {
     if (!isResizing) return;
     let width = e.clientX;
-    if (width < 200) width = 200;
-    if (width > 500) width = 500;
+    if (width < 250) width = 250;
+    if (width > 550) width = 550;
     if (sidebarRef.current) {
       sidebarRef.current.style.width = `${width}px`;
     }

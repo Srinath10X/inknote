@@ -57,7 +57,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           !isResizing && "transition-all duration-300"
         }`}
       >
-        <Navigation onClose={handleClose} />
+        <Navigation onClose={handleClose} isCollapsed={isCollapsed} />
 
         <div
           onMouseDown={onMouseDown}
@@ -80,7 +80,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         )}
         <div
           onClick={handleOpen}
-          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-90 transition-opacity z-20 ${
+          className={`absolute top-5 left-5 p-1.5 hover:bg-slate-300/40 hover:cursor-pointer rounded-md active:scale-[.98] transition-opacity z-20 ${
             isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >

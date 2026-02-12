@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import {
   ChevronsLeft,
   Command,
@@ -16,14 +17,20 @@ import { DocumentList } from "./DocumentList";
 
 interface NavigationProps {
   onClose: () => void;
+  isCollapsed: boolean;
 }
 
-export const Navigation = ({ onClose }: NavigationProps) => {
+export const Navigation = ({ onClose, isCollapsed }: NavigationProps) => {
   const router = useRouter();
   const { addNote } = useNotesStore();
 
   return (
-    <section className="flex flex-col w-full p-5 truncate whitespace-nowrap overflow-hidden">
+    <section
+      className={cn(
+        "flex flex-col w-full p-5 truncate whitespace-nowrap overflow-hidden transition-opacity duration-300",
+        isCollapsed && "opacity-0",
+      )}
+    >
       {/* Profile section */}
       <div className="flex gap-2 p-1.5 items-center hover:cursor-pointer select-none">
         <div className="bg-blue-300 h-6 w-6 rounded-md"></div>
@@ -70,7 +77,7 @@ export const Navigation = ({ onClose }: NavigationProps) => {
       {/* Chevron icon to collapse sidebar */}
       <div
         onClick={onClose}
-        className="invisible absolute top-5 right-5 p-1.5 hover:bg-slate-300/40 rounded-md group-hover/sidebar:visible hover:cursor-pointer duration-300 active:scale-90"
+        className="invisible absolute top-5 right-5 p-1.5 hover:bg-slate-300/40 rounded-md group-hover/sidebar:visible hover:cursor-pointer duration-300 active:scale-[.98]"
       >
         <ChevronsLeft className="text-slate-500" />
       </div>
