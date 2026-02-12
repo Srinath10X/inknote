@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, MouseEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   ChevronDown,
   ChevronRight,
@@ -174,6 +174,7 @@ export const DocumentList = () => {
   const { notes, selectedId, addNote, selectNote } = useNotesStore();
   const setIsNavigating = useUIStore((state) => state.setIsNavigating);
   const router = useRouter();
+  const pathname = usePathname();
 
   const toggleNote = (id: string) => {
     useNotesStore.setState((state) => {
@@ -253,8 +254,11 @@ export const DocumentList = () => {
             selectedId={selectedId}
             onSelect={(id) => {
               selectNote(id);
-              setIsNavigating(true);
-              router.push(`/editor/${id}`);
+              const targetPath = `/editor/${id}`;
+              if (pathname !== targetPath) {
+                setIsNavigating(true);
+              }
+              router.push(targetPath);
             }}
           />
         ))}
